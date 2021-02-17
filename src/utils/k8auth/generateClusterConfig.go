@@ -11,11 +11,13 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/clientcmd/api"
 )
 
 func GetGkekubeConfig(ctx context.Context, projectID, region, clusterName string) (*kubernetes.Clientset, rest_errors.RestErr) {
+
 	kubeConfig, rest_err := GetGKEClustersConfig(ctx, projectID, region)
 	if rest_err != nil {
 		return nil, rest_err
@@ -41,12 +43,12 @@ func ListGKEWorkload(ctx context.Context, projectID, region string) ([]v1.Namesp
 	}
 	var namespaces = make([]v1.Namespace, 0)
 	for clusterName := range kubeConfig.Clusters {
-		fmt.Println("clusterName: ***** ", clusterName)
+
 		kcfg, err := clientcmd.NewNonInteractiveClientConfig(*kubeConfig, clusterName, &clientcmd.ConfigOverrides{
 			CurrentContext: clusterName,
 		}, nil).ClientConfig()
 		if err != nil {
-			return nil, rest_errors.NewInternalServerError(fmt.Sprintf("failed to create Kubernetes configuration cluster=%s: %s", clusterName, err.Error()), err)
+			return nil, rest_errors.NewBadRequestError(fmt.Sprintf("failed to create Kubernetes configuration cluster=%s: %s", clusterName, err.Error()))
 		}
 		k8s, err := kubernetes.NewForConfig(kcfg)
 		if err != nil {
@@ -87,8 +89,8 @@ func GetGKEClustersConfig(ctx context.Context, projectID, region string) (*api.C
 			return nil, rest_errors.NewInternalServerError(fmt.Sprintf("invalid certificate cluster=%s cert=%s: %w", name, cluster.MasterAuth.ClusterCaCertificate, err), err)
 		}
 		cfg.Clusters[name] = &api.Cluster{
-			CertificateAuthority: string(cert),
-			Server:               "https://" + cluster.Endpoint,
+			CertificateAuthorityData: cert,
+			Server:                   "https://" + cluster.Endpoint,
 		}
 		cfg.Contexts[name] = &api.Context{
 			Cluster:  name,

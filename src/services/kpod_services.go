@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 
-	"github.com/shakilbd009/go-gke-api/src/client/kubernetes/corev1"
 	"github.com/shakilbd009/go-gke-api/src/domain/k8s"
 	"github.com/shakilbd009/go-gke-api/src/utils/k8auth"
 	"github.com/shakilbd009/go-utils-lib/rest_errors"
@@ -25,9 +24,6 @@ func (*kpodService) GetPods(ctx context.Context, projectID, region, clusterName,
 	client, rest_err := k8auth.GetGkekubeConfig(ctx, projectID, region, clusterName)
 	if rest_err != nil {
 		return nil, rest_err
-	}
-	if err := corev1.Namespace.Get(ctx, client, namespace); err != nil {
-		return nil, rest_errors.NewBadRequestError(err.Error())
 	}
 	var pod k8s.Kpod
 	pods, err := pod.GetPods(ctx, client, namespace)

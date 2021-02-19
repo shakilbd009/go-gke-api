@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/shakilbd009/go-gke-api/src/domain/entity"
 	"github.com/shakilbd009/go-gke-api/src/domain/k8s"
 	"github.com/shakilbd009/go-gke-api/src/services"
 	"github.com/shakilbd009/go-gke-api/src/utils/k8auth"
@@ -31,9 +32,66 @@ type kcontrollerInterface interface {
 	DeleteDeployment(*gin.Context)
 	GetPods(*gin.Context)
 	ListGKE(c *gin.Context)
+	GetClusters(c *gin.Context)
+	GetClustersDeployments(c *gin.Context)
+	GetNamespaces(c *gin.Context)
 	GetPodLogs(*gin.Context)
 	GetContainers(c *gin.Context)
 	GetContainerLogs(c *gin.Context)
+}
+
+func (k *kcontroller) GetClustersDeployments(c *gin.Context) {
+
+	params, err := utility.CheckQueryParam(c, projectID, region)
+	if err != nil {
+		c.JSON(err.Status(), err)
+		return
+	}
+	var e entity.Request
+	e.Project = params[projectID]
+	e.Region = params[region]
+	result, err := services.KCommonServices.GetAllDeployments(c.Request.Context(), &e)
+	if err != nil {
+		c.JSON(err.Status(), err)
+		return
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+func (k *kcontroller) GetNamespaces(c *gin.Context) {
+
+	params, err := utility.CheckQueryParam(c, projectID, region, clusterName)
+	if err != nil {
+		c.JSON(err.Status(), err)
+		return
+	}
+	var e entity.Request
+	e.Project = params[projectID]
+	e.Region = params[region]
+	result, err := services.KnamespaceServices.GetAll(c.Request.Context(), &e, params[clusterName])
+	if err != nil {
+		c.JSON(err.Status(), err)
+		return
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+func (k *kcontroller) GetClusters(c *gin.Context) {
+
+	params, err := utility.CheckQueryParam(c, projectID, region)
+	if err != nil {
+		c.JSON(err.Status(), err)
+		return
+	}
+	var e entity.Request
+	e.Project = params[projectID]
+	e.Region = params[region]
+	result, err := services.KgkeServices.GetClusters(c.Request.Context(), &e)
+	if err != nil {
+		c.JSON(err.Status(), err)
+		return
+	}
+	c.JSON(http.StatusOK, result)
 }
 
 func (k *kcontroller) ListGKE(c *gin.Context) {

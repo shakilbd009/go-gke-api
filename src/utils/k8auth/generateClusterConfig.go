@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	ctn "cloud.google.com/go/container/apiv1"
+	"github.com/shakilbd009/go-gke-api/src/client/gke"
 	"github.com/shakilbd009/go-utils-lib/rest_errors"
 	"google.golang.org/genproto/googleapis/container/v1"
 	v1 "k8s.io/api/core/v1"
@@ -37,6 +37,7 @@ func GetGkekubeConfig(ctx context.Context, projectID, region, clusterName string
 }
 
 func ListGKEWorkload(ctx context.Context, projectID, region string) ([]v1.Namespace, rest_errors.RestErr) {
+
 	kubeConfig, err := GetGKEClustersConfig(ctx, projectID, region)
 	if err != nil {
 		return nil, err
@@ -65,11 +66,11 @@ func ListGKEWorkload(ctx context.Context, projectID, region string) ([]v1.Namesp
 	return namespaces, nil
 }
 
+//GetGKEClustersConfig func collected from https://bionic.fullstory.com/connect-to-google-kubernetes-with-gcp-credentials-and-pure-golang/
+//it generates kubeconfig on the fly by calling gke api, then use this config to authenticate to GKE(kubernetes) resources
 func GetGKEClustersConfig(ctx context.Context, projectID, region string) (*api.Config, rest_errors.RestErr) {
-	client, err := ctn.NewClusterManagerClient(ctx)
-	if err != nil {
-		return nil, rest_errors.NewInternalServerError(err.Error(), err)
-	}
+
+	client, err := gke.Kubernetes.GetClient(ctx)
 	cfg := api.Config{
 		APIVersion: "v1",
 		Kind:       "config",

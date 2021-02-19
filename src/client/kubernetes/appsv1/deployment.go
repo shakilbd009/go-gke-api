@@ -21,6 +21,8 @@ var (
 )
 
 type deploymentInterface interface {
+	Get(ctx context.Context, client *kubernetes.Clientset, namespace, deploymentName string) (*appsv1.Deployment, error)
+	GetAll(ctx context.Context, client *kubernetes.Clientset, namespace string) ([]appsv1.Deployment, error)
 	Create(ctx context.Context, client *kubernetes.Clientset, namespace, deploymentName, containerName, image string, replicas *int32) (string, error)
 	Delete(ctx context.Context, client *kubernetes.Clientset, namespace, deploymentName string) error
 	CreateMultiContainer(ctx context.Context, client *kubernetes.Clientset, namespace, deploymentName string, containers []Container, replicas *int32) (string, error)
@@ -31,6 +33,22 @@ type Container struct {
 	Command []string `json:"commands,omitempty"`
 }
 type deployment struct{}
+
+func (*deployment) Get(ctx context.Context, client *kubernetes.Clientset, namespace, deploymentName string) (*appsv1.Deployment, error) {
+	resp, err := client.AppsV1().Deployments(namespace).Get(ctx, deploymentName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (*deployment) GetAll(ctx context.Context, client *kubernetes.Clientset, namespace string) ([]appsv1.Deployment, error) {
+	resp, err := client.AppsV1().Deployments(namespace).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+	return resp.Items, nil
+}
 
 func (*deployment) Create(ctx context.Context, client *kubernetes.Clientset, namespace, deploymentName, containerName, image string, replicas *int32) (string, error) {
 

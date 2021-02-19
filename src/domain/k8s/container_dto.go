@@ -1,6 +1,7 @@
 package k8s
 
 type Kcontainer struct {
+	ClusterName        string `json:"clusterName"`
 	ContainerNamespace string `json:"pod_namespace"`
 	PodName            string `json:"pod_name"`
 	ContainerName      string `json:"container"`

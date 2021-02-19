@@ -14,6 +14,10 @@ func StartApp(w http.ResponseWriter, r *http.Request) {
 	router.ServeHTTP(w, r)
 }
 
+func StartAppTestLocally() {
+	//
+}
+
 func init() {
 	urlMapping()
 	router.Run()

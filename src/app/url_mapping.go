@@ -13,4 +13,7 @@ func urlMapping() {
 	router.GET("/containers", controller.Kcontroller.GetContainers)
 	router.GET("/containerLogs", controller.Kcontroller.GetContainerLogs)
 	router.GET("/list", controller.Kcontroller.ListGKE)
+	router.GET("/clusters", controller.Kcontroller.GetClusters)
+	router.GET("/clusters_dpl", controller.Kcontroller.GetClustersDeployments)
+	router.GET("/namespaces", controller.Kcontroller.GetNamespaces)
 }

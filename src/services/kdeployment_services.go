@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/shakilbd009/go-gke-api/src/domain/entity"
 	"github.com/shakilbd009/go-gke-api/src/domain/k8s"
 	"github.com/shakilbd009/go-gke-api/src/utils/k8auth"
 	"github.com/shakilbd009/go-k8s-api/src/client/kubernetes/corev1"
@@ -23,6 +24,21 @@ type kDeploymentInterface interface {
 	CreateDeployment(context.Context, *k8s.K8sDeployment) (*k8s.K8sDeployment, rest_errors.RestErr)
 	DeleteDeployment(context.Context, *k8s.K8sDeployment) (*k8s.K8sDeployment, rest_errors.RestErr)
 	CreateMultiContainerDeployment(ctx context.Context, k *k8s.K8sDeployments) (*k8s.K8sDeployments, rest_errors.RestErr)
+	GetAll(ctx context.Context, r *entity.Request, clusterName, namespace string) ([]*k8s.K8sDeployment, rest_errors.RestErr)
+}
+
+func (*kDeploymentService) GetAll(ctx context.Context, r *entity.Request, clusterName, namespace string) ([]*k8s.K8sDeployment, rest_errors.RestErr) {
+
+	var k k8s.K8sDeployment
+	client, err := k8auth.GetGkekubeConfig(ctx, r.Project, r.Region, clusterName)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := k.GetAll(ctx, client, clusterName, namespace)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }
 
 func (*kDeploymentService) CreateDeployment(ctx context.Context, k *k8s.K8sDeployment) (*k8s.K8sDeployment, rest_errors.RestErr) {
@@ -34,7 +50,7 @@ func (*kDeploymentService) CreateDeployment(ctx context.Context, k *k8s.K8sDeplo
 	// if err != nil {
 	// 	return nil, err
 	// }
-	client, rest_err := k8auth.GetGkekubeConfig(ctx, k.Request.Project, k.Request.Region, k.Request.ClusterName)
+	client, rest_err := k8auth.GetGkekubeConfig(ctx, k.Request.Project, k.Request.Region, k.ClusterName)
 	if rest_err != nil {
 		return nil, rest_err
 	}
@@ -57,7 +73,7 @@ func (*kDeploymentService) CreateMultiContainerDeployment(ctx context.Context, k
 	if err := k.ValidateCreateDeployment(); err != nil {
 		return nil, err
 	}
-	client, rest_err := k8auth.GetGkekubeConfig(ctx, k.Request.Project, k.Request.Region, k.Request.ClusterName)
+	client, rest_err := k8auth.GetGkekubeConfig(ctx, k.Request.Project, k.Request.Region, k.ClusterName)
 	if rest_err != nil {
 		return nil, rest_err
 	}
@@ -80,7 +96,7 @@ func (*kDeploymentService) DeleteDeployment(ctx context.Context, k *k8s.K8sDeplo
 	if err := k.ValidateDeleteDeployment(); err != nil {
 		return nil, err
 	}
-	client, rest_err := k8auth.GetGkekubeConfig(ctx, k.Request.Project, k.Request.Region, k.Request.ClusterName)
+	client, rest_err := k8auth.GetGkekubeConfig(ctx, k.Request.Project, k.Request.Region, k.ClusterName)
 	if rest_err != nil {
 		return nil, rest_err
 	}
